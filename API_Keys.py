@@ -1,10 +1,3 @@
-#client = Market_Spot(api_key, api_secret, api_passphrase)
-#client_f = Client('', '', '') # Also Work.....why?
-
-#api_key_future = "61d4d8da2753a800017e27db" #"61bc7915b2bbf80001a3031e"
-#api_secret_future = "efcc76cc-60f4-40e9-a9a3-0f3d891a0fef" #"b05d6594-749e-422d-9266-bc38ad963303"
-#api_passphrase_future = "ARBATM_KC_F" #"ARBATM_KC_Future"
-
 ######################################################
 # SPOT - REAL
 api_key_s = "xxxxxxxxxxxxxxxxxxxxxxxxxxxx"
