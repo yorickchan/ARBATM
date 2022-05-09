@@ -1,8 +1,13 @@
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+
 use_sandbox = False
 simulation_mode = False # If True, No Actual Orders will be placed
 
 exchange = "KuCoin"
-symbol = "ONE"  #KuCoin Sandbox only work with "certain" coins, data is wrong too - ALL CAPS
+symbol = os.environ['SYMBOL']  #KuCoin Sandbox only work with "certain" coins, data is wrong too - ALL CAPS
 lotsize = 500 #20000  #Corresponding number of matching contract will be automatically calculated
 #symbol = "ETH"
 #lotsize = 1
