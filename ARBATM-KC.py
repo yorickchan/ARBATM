@@ -120,7 +120,7 @@ formatter_2d = "{0:.2f}"
 formatter_5d = "{0:.5f}"
 formatter_5d_pn = "{:+.5f}" # with +ve/-ve sign
 formatter_3d_pn = "{:+.3f}" # with +ve/-ve sign
-formatter_idx = "{:0>7d}"
+formatter_idx = "{:0>8d}"
 
 ########################################################################
 #https://api-futures.kucoin.com/api/v1/ticker?symbol=XBTUSDM
@@ -164,6 +164,7 @@ def proximity_in_orderbook(sym, sym_f,
     #           - with pre-determined allowance
     # Allow +/- variance  (-ve Good, +ve NOT Good)
     ####################################################################################
+    print("proximity_in_orderbook.........")
     asks_size_accum, asks_price_accum, ask_orderbook, diff_buy_pct,  asks_index, buy_sym  = 0, 0, '', 0, 0, ''
     bids_size_accum, bids_price_accum, bid_orderbook, diff_sell_pct, bids_index, sell_sym = 0, 0, '', 0, 0, ''
     #ask_buy_ok, bid_sell_ok = False, False
@@ -534,8 +535,8 @@ def market_order_closeAll (sym, sym_f,
         else:
             id_sell = sell_client.create_limit_order(symbol=sym, side='sell', price=tgt_sell_price, size=lotsize, clientOid=API_Keys.clientOid)['orderId']
     except:
-        print("ERROR (4A)!!! when <market_order_closeAll:create_market_order(SELL-S)> ")
-        sys.exit()
+        print("ERROR (5A)!!! when <market_order_closeAll:create_market_order(SELL-S)> ")
+        #sys.exit()
         pass
 
     #######################
@@ -551,7 +552,7 @@ def market_order_closeAll (sym, sym_f,
                 id_buy = buy_client.create_limit_order(symbol=sym_f, side='buy', price=tgt_buy_price, lever=1,
                                                        clientOid=API_Keys.clientOid, size=num_f_contract)['orderId']  # ACTUALLY WORK!!!!!
         except:
-            print("ERROR (4B)!!! when <place_market_order:create_market_order(SELL-F)> ")
+            print("ERROR (5B)!!! when <place_market_order:create_market_order(SELL-F)> ")
             pass
 
     mission = "Mission (Close All): " + "\r\n" + \
@@ -591,17 +592,20 @@ def order_status_review(orderId_s, orderId_f, orderId_rev,
     ########################################################
     # Part A-1: Sleep until Spot-order is no-longer Active
     ########################################################
+    print("Review - BEFORE A1 - Sleep")
     s_order = client_st.get_order_details(orderId=orderId_s) # '61e8df144b81fa00012b3c62'
     while s_order['isActive']:
         slept_cnt_s += 1
-        print (orderId_s + ": sleep " + slept_cnt_s)
-        t.sleep(5)
+        print (orderId_s + ": sleep " + str(slept_cnt_s))
+        t.sleep(15)
+        s_order = client_st.get_order_details(orderId=orderId_s)
     s_txt = '<' + s_order['side'].upper() + ' SPOT: ' + s_order['symbol'] + ": " + " " + str(s_order['size']) + '>' + "\r\n" + \
-            'orderId: ' + s_order['id'] + "\r\n"
-
+            'orderId: ' + s_order['id'] + " (" + s_order['type'] + ")" + "\r\n"
+    print("Review - Finished A1 - Sleep")
     ########################################################
     # Part A-2: Get total Spot-order price, size, and fees
     ########################################################
+    print("Review - BEFORE A2")
     s_order = client_st.get_fill_list(tradeType='TRADE')['items']  # Either TRADE or MARGIN_TRADE, #24hrs
     fills = list(filter(lambda filled_entry: filled_entry['orderId'] == orderId_s, s_order))  # [1]['price']
     if len(fills) == 0:
@@ -618,21 +622,25 @@ def order_status_review(orderId_s, orderId_f, orderId_rev,
     s_txt = s_txt + "Total (S): " + formatter_5d_pn.format(ttl_s) + "\r\n" + \
             "Fees (S): " + formatter_5d_pn.format(fee_s) + " (" + formatter_2d.format(fee_s/ttl_s*100) + "%)"
 
-
+    print("Review - Finished A2")
     ########################################################
     # Part B-1: Sleep until Futures-order is no-longer Active
     ########################################################
+    print("Review - BEFORE B1 - Sleep")
     f_order = client_ft.get_order_details(orderId=orderId_f)
     while f_order['isActive']:
         slept_cnt_f += 1
         print (orderId_f + ": sleep " + str(slept_cnt_f))
-        t.sleep(5)
+        t.sleep(15)
+        f_order = client_ft.get_order_details(orderId=orderId_f)
     f_txt = '<' + f_order['side'].upper() + ' Futures: ' + f_order['symbol'] + ": " + " " + str(f_order['size']) + f_lot_size_txt + '>' + "\r\n" + \
-            'orderId: ' + f_order['id'] + "\r\n"
+            'orderId: ' + f_order['id'] + " (" + f_order['type'] + ")" + "\r\n"
 
+    print("Review - Finished B1 - Sleep")
     ########################################################
     # Part B-2: Get total Futures-order price, size, and fees
     ########################################################
+    print("Review - BEFORE B2")
     f_order = client_ft.get_recent_fills()
     fills = list(filter(lambda filled_entry: filled_entry['orderId'] == orderId_f, f_order))  # [1]['price']
     if len(fills) == 0:
@@ -648,6 +656,8 @@ def order_status_review(orderId_s, orderId_f, orderId_rev,
         index_f += 1
     f_txt = f_txt + "Total (F): " + formatter_5d_pn.format(ttl_f) + "\r\n" + \
             "Fees (F): " + formatter_5d_pn.format(fee_f) + " (" + formatter_2d.format(fee_f/ttl_f*100) + "%)"
+
+    print("Review - Finished B2")
 
     if mode==1:
         #Buy S, Sell F
@@ -666,6 +676,7 @@ def order_status_review(orderId_s, orderId_f, orderId_rev,
                            "Gross: " + formatter_5d.format(gross_pl) + "\r\n" + \
                            "Net: " + formatter_5d.format(net_pl)
 
+    print("order_review_txt::::: " + order_review_txt)
     return gross_pl, net_pl, order_review_txt
 
 delta_dict = {
@@ -703,8 +714,13 @@ print ("Min Lot Size: " + str(f_min_lot))
 print ("Multiplier: " + str(f_multiplier))
 print ("MOD: " + str(float(ARBATM_param.lotsize) % float(f_multiplier)))
 
+print("equiv_num_fcont: " + str(float(ARBATM_param.lotsize) / float(f_multiplier)))
+if equiv_num_fcont % 1 == 0:
+    print ("proceed")
+
 #if float(ARBATM_param.lotsize) % float(f_lot_size) != 0:
-if float(ARBATM_param.lotsize) < float(f_min_lot) or  float(ARBATM_param.lotsize) % float(f_multiplier) != 0:
+#if float(ARBATM_param.lotsize) < float(f_min_lot) or float(ARBATM_param.lotsize) % float(f_multiplier) != 0:
+if float(ARBATM_param.lotsize) < float(f_min_lot) or equiv_num_fcont % 1 != 0:
     print ('Invalid Lot Size to multiplier')
     print(str(ARBATM_param.lotsize) + ' ' + sym + ' = ' +
           str(float(ARBATM_param.lotsize) / float(f_multiplier)) + ' ' + sym_f + ' futures contracts')
@@ -713,15 +729,18 @@ else:
     #lotsize_fcont = f_multiplier
     equiv_num_fcont = float(ARBATM_param.lotsize) / float(f_multiplier)
     print(str(ARBATM_param.lotsize) + ' ' + sym + ' = ' + \
-          str(equiv_num_fcont) + ' (multiplier:' + str(int(f_multiplier)) + ') ' + sym_f + ' futures contracts')
+          str(equiv_num_fcont) + ' (multiplier:' + str(float(f_multiplier)) + ') ' + sym_f + ' futures contracts')
 
 f_lot_size_txt = " (" + str(equiv_num_fcont) + " contract, mult: " + str(f_multiplier) + ") "
+print ("OK to Proceed:")
+print (f_lot_size_txt)
 # For 500 ONE:
 # equiv_num_fcont = 50
 # lotsize_fcont = 10
 
 
-print("Num Contract: " + str(equiv_num_fcont))
+#print("Num Contract: " + str(equiv_num_fcont))
+#sys.exit()
 
 #id_buy = buy_client.create_limit_order(symbol=sym, price=tgt_buy_price, size=lotsize, clientOid=API_Keys.clientOid)['orderId']
 #id_buy = client_st.create_limit_order(symbol=sym, side='buy', price=0.12, size=equiv_num_fcont, clientOid=API_Keys.clientOid)['orderId']
@@ -840,32 +859,34 @@ while run:
             print ("ERROR (1)!!! when <main:get_ticker>  " + " Attempt: " + str(api_retry_count))
             pass
 
-    delta = future_price - spot_price
-    delta_pct = (future_price - spot_price) / spot_price * 100
-    if delta_pct < min_delta_pct:
-        min_delta_pct = delta_pct
-    elif delta_pct > max_delta_pct:
-        max_delta_pct = delta_pct
-    if abs(delta_pct) < abs(zero_delta_pct):
-        zero_delta_pct = delta_pct
-
-    if delta_pct > 0:
-        # F>S
-        condition = "Contango (F>S)"
-    elif delta_pct < 0:
-        # F<S
-        condition = 'Backwardation (F<S)'
-    else:
-        #F=S
-        condition = 'Neutural (F=S)'
-
     ts_diff = (future_dt - spot_dt).total_seconds()
     if abs(ts_diff) <= ARBATM_param.ts_var_allow_sec:
         ts_within_allowance = True
         ts_diff_txt = str(formatter_5d_pn.format(ts_diff)) + "sec is within +/-" + str(ARBATM_param.ts_var_allow_sec) + "sec limit"
+
+        delta = future_price - spot_price
+        delta_pct = (future_price - spot_price) / spot_price * 100
+        if delta_pct < min_delta_pct:
+            min_delta_pct = delta_pct
+        elif delta_pct > max_delta_pct:
+            max_delta_pct = delta_pct
+        if abs(delta_pct) < abs(zero_delta_pct):
+            zero_delta_pct = delta_pct
+
+        if delta_pct > 0:
+            # F>S
+            condition = "Contango (F>S)"
+        elif delta_pct < 0:
+            # F<S
+            condition = 'Backwardation (F<S)'
+        else:
+            #F=S
+            condition = 'Neutural (F=S)'
+
     else:
         ts_within_allowance = False
         ts_diff_txt = str(formatter_5d_pn.format(ts_diff)) + "sec exceeded +/-" + str(ARBATM_param.ts_var_allow_sec) + "sec limit"
+        condition = 'Void (Time-Delta exceeded limit)'
 
 #    delta_dict['idx'].append(probe_idx)
 #    delta_dict['lt'].append(local_dt)
@@ -946,7 +967,7 @@ while run:
                 review_text = "SIMULATION MODE" + "\r\n" + "Target PL: " + str(tgt_pl_g) + "\r\n\r\n" + "Simulation Mode"
                 actual_pl_g, actual_pl_n = 0, 0
 
-    elif num_pos > 0 and num_pos < ARBATM_param.max_pos_allow and \
+    elif num_pos >= 1 and num_pos < ARBATM_param.max_pos_allow and \
             delta_pct >= ARBATM_param.range_top and \
             ts_within_allowance:
         ########################
@@ -1062,7 +1083,7 @@ while run:
                 review_text = "SIMULATION MODE" + "\r\n" + "Target PL: " + str(tgt_pl_g) + "\r\n\r\n" + "Simulation Mode"
                 actual_pl_g, actual_pl_n = 0, 0
 
-    elif num_pos > 0 and \
+    elif num_pos >= 1 and \
             delta_pct <= ARBATM_param.range_bottom and \
             ts_within_allowance:
         ########################
@@ -1138,7 +1159,7 @@ while run:
                 ARBATM_param.bcolors.Yellow + "<Time Delta (F-S)>: " + ts_diff_txt + ARBATM_param.bcolors.NORMAL + "\n" + \
                 ARBATM_param.bcolors.Yellow + "<State>: " + state_text + ARBATM_param.bcolors.NORMAL + "\n" + \
                 ARBATM_param.bcolors.Yellow + "{:<20}".format("<Condition>:") + ARBATM_param.bcolors.Red + "{:<20}".format(condition) + ARBATM_param.bcolors.Yellow +  ARBATM_param.bcolors.NORMAL + "\n" + \
-                ARBATM_param.bcolors.Yellow + "<Proximity Check>:  " + str(proximity_text) + ARBATM_param.bcolors.NORMAL + "\n" + \
+                ARBATM_param.bcolors.Yellow + "<Proximity Check>:  " + ARBATM_param.bcolors.Magenta + str(proximity_text) + ARBATM_param.bcolors.NORMAL + "\n" + \
                 ARBATM_param.bcolors.Yellow + "<Order Action>: " + str(order_text) + ARBATM_param.bcolors.NORMAL
         print(disp)
 
@@ -1170,7 +1191,7 @@ while run:
                 str(probe_idx),
                 local_dt.strftime("%Y-%m-%d %H:%M:%S"),
                 ARBATM_param.symbol, ARBATM_param.lotsize,
-                order[1], order[2], order[3]) #[1]=SPOT, [2]=FUTURES (Always:Add/Subtract)
+                order[1], order[2], mission) #[1]=SPOT, [2]=FUTURES (Always:Add/Subtract)
         writer.writerow(tup2)
         f.close()
 
