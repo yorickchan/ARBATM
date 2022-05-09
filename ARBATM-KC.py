@@ -18,7 +18,8 @@ import csv
 # import keyboard #pip install keyboard
 from datetime import datetime
 import time as t
-import winsound
+# import winsound
+import beepy
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import pandas as pd
@@ -66,6 +67,7 @@ client_ft = Trade_Futures(key=os.environ['KC_FUTURES_KEY'],
                             is_sandbox=os.environ['KC_FUTURES_IS_SANDBOX'])
 
 clientOid = os.environ['CLIENTOID']
+print(client_ft)
 
 
 ########################################################################
@@ -89,25 +91,34 @@ formatter_idx = "{:0>8d}"
 #https://api.kucoin.com/api/v1/symbols
 #https://api-futures.kucoin.com/api/v1/contracts/active
 
+
+#https://pypi.org/project/beepy/
+
 def sound(type):
     if ARBATM_param.beep:
         if type == 'normal':
             #Normal
-            winsound.Beep(frequency=440, duration=500)
+            # winsound.Beep(frequency=440, duration=500)
+            beepy.beep('ping')
         elif type == 'long':
             #Long Beep
-            winsound.Beep(frequency=440, duration=1200)
+            # winsound.Beep(frequency=440, duration=1200)
+            beepy.beep('error')
         elif type == 'short':
             #Short Blip
-            winsound.Beep(frequency=440, duration=100)
+            # winsound.Beep(frequency=440, duration=100)
+            beepy.beep('coin')
         elif type == 'shortlow':
-            winsound.Beep(frequency=200, duration=100)
+            # winsound.Beep(frequency=200, duration=100)
+            beepy.beep('ping')
         elif type == 'high':
             #Add (+1)
-            winsound.Beep(frequency=660, duration=500)
+            # winsound.Beep(frequency=660, duration=500)
+            beepy.beep('ping')
         elif type == 'low':
             #Subtract (-1)
-            winsound.Beep(frequency=200, duration=500)
+            # winsound.Beep(frequency=200, duration=500)
+            beepy.beep('ping')
 
 
 def proximity_in_orderbook(sym, sym_f,
