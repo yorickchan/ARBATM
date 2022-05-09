@@ -5,6 +5,9 @@
 # pip install kucoin-python         #Official
 # pip install kucoin-futures-python #Official
 # STOP Working -- Fix: python -m ensurepip
+import os
+
+
 from kucoin.client import Market as Market_Spot
 from kucoin.client import Trade as Trade_Spot
 from kucoin_futures.client import Market as Market_Futures
@@ -12,7 +15,7 @@ from kucoin_futures.client import Trade as Trade_Futures
 #from kucoin.asyncio import KucoinSocketManager
 import sys
 import csv
-import keyboard #pip install keyboard
+# import keyboard #pip install keyboard
 from datetime import datetime
 import time as t
 import winsound
@@ -20,7 +23,8 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import pandas as pd
 
-
+from dotenv import load_dotenv
+load_dotenv()
 
 
 import ARBATM_param
@@ -32,80 +36,37 @@ if ARBATM_param.output_to_gsheet:
 #output_to_csv = ARBATM_param.output_to_csv
 
 
-########################################################################
-import API_Keys # from API_Keys import KC_SPOT
+client_sm = Market_Spot(key=os.environ['KC_SPOT_KEY'],
+                        secret=os.environ['KC_SPOT_SECRET'],
+                        passphrase=os.environ['KC_SPOT_PASSPHRASE'],
+                        is_sandbox=os.environ['KC_SPOT_IS_SANDBOX'],
+                        url=os.environ['KC_SPOT_URL'])
+#spot = client_sm.get_ticker('BTC-USDT') # WORK ONLY FOR ETH-USDT AND BTC-USDT!!!!!!!!!!!!
+#print("Sandbox-S")
+#print(spot)
+#sys.exit()
+client_st = Trade_Spot(key=os.environ['KC_SPOT_KEY'],
+                        secret=os.environ['KC_SPOT_SECRET'],
+                        passphrase=os.environ['KC_SPOT_PASSPHRASE'],
+                        is_sandbox=os.environ['KC_SPOT_IS_SANDBOX'])
+#client_fm = Market_Futures(url='https://api-sandbox-futures.kucoin.com')
+client_fm = Market_Futures(key=os.environ['KC_FUTURES_KEY'],
+                            secret=os.environ['KC_FUTURES_SECRET'],
+                            passphrase=os.environ['KC_FUTURES_PASSPHRASE'],
+                            is_sandbox=os.environ['KC_FUTURES_IS_SANDBOX'],
+                            url=os.environ['KC_FUTURES_URL'])
+#future = client_fm.get_ticker('ETHUSDTM')
+#print("Sandbox-F")
+#print(future)
+#sys.exit()
 
-if ARBATM_param.use_sandbox:
-    ######################
-    # USE SANDBOX ACCOUNT
-    ######################
-    #client_sm = Market_Spot(url='https://openapi-sandbox.kucoin.com')
-    client_sm = Market_Spot(key=API_Keys.KC_SPOT_SANDBOX['key'],
-                            secret=API_Keys.KC_SPOT_SANDBOX['secret'],
-                            passphrase=API_Keys.KC_SPOT_SANDBOX['passphrase'],
-                            is_sandbox=API_Keys.KC_SPOT_SANDBOX['is_sandbox'],
-                            url='https://openapi-sandbox.kucoin.com')
-    #spot = client_sm.get_ticker('BTC-USDT') # WORK ONLY FOR ETH-USDT AND BTC-USDT!!!!!!!!!!!!
-    #print("Sandbox-S")
-    #print(spot)
-    #sys.exit()
-    client_st = Trade_Spot(key=API_Keys.KC_SPOT_SANDBOX['key'],
-                           secret=API_Keys.KC_SPOT_SANDBOX['secret'],
-                           passphrase=API_Keys.KC_SPOT_SANDBOX['passphrase'],
-                           is_sandbox=API_Keys.KC_SPOT_SANDBOX['is_sandbox'])
-    #client_fm = Market_Futures(url='https://api-sandbox-futures.kucoin.com')
-    client_fm = Market_Futures(key=API_Keys.KC_FUTURES_SANDBOX['key'],
-                               secret=API_Keys.KC_FUTURES_SANDBOX['secret'],
-                               passphrase=API_Keys.KC_FUTURES_SANDBOX['passphrase'],
-                               is_sandbox=API_Keys.KC_FUTURES_SANDBOX['is_sandbox'],
-                               url='https://api-sandbox-futures.kucoin.com')
-    #future = client_fm.get_ticker('ETHUSDTM')
-    #print("Sandbox-F")
-    #print(future)
-    #sys.exit()
+client_ft = Trade_Futures(key=os.environ['KC_FUTURES_KEY'],
+                            secret=os.environ['KC_FUTURES_SECRET'],
+                            passphrase=os.environ['KC_FUTURES_PASSPHRASE'],
+                            is_sandbox=os.environ['KC_FUTURES_IS_SANDBOX'])
 
-    client_ft = Trade_Futures(key=API_Keys.KC_FUTURES_SANDBOX['key'],
-                              secret=API_Keys.KC_FUTURES_SANDBOX['secret'],
-                              passphrase=API_Keys.KC_FUTURES_SANDBOX['passphrase'],
-                              is_sandbox=API_Keys.KC_FUTURES_SANDBOX['is_sandbox'])
-else:
-    ######################
-    # USE *REAL* ACCOUNT
-    ######################
-    #client_sm = Market_Spot(url='https://api.kucoin.com')
-    #klines = client_sm.get_kline('BTC-USDT', '1min')
-    #print(klines)
-    #spot = client_sm.get_ticker('BTC-USDT')
-    #print(spot)
-    #print(spot)
-    client_sm = Market_Spot(key=API_Keys.KC_SPOT['key'],
-                            secret=API_Keys.KC_SPOT['secret'],
-                            passphrase=API_Keys.KC_SPOT['passphrase'],
-                            is_sandbox=API_Keys.KC_SPOT['is_sandbox'],
-                            url=API_Keys.KC_SPOT['url'])
-    #url = 'https://api.kucoin.com'
-    #spot = client_sm.get_ticker('BTC-USDT')
-    #print(spot)
-    #sys.exit()
+clientOid = os.environ['CLIENTOID']
 
-    client_st = Trade_Spot(key=API_Keys.KC_SPOT['key'],
-                           secret=API_Keys.KC_SPOT['secret'],
-                           passphrase=API_Keys.KC_SPOT['passphrase'],
-                           is_sandbox=API_Keys.KC_SPOT['is_sandbox'],
-                           url=API_Keys.KC_SPOT['url'])
-
-    client_fm = Market_Futures(key=API_Keys.KC_FUTURES['key'],
-                               secret=API_Keys.KC_FUTURES['secret'],
-                               passphrase=API_Keys.KC_FUTURES['passphrase'],
-                               is_sandbox=API_Keys.KC_FUTURES['is_sandbox'],
-                               url=API_Keys.KC_FUTURES['url'])
-    #future = client_fm.get_ticker('ONEUSDTM') #--> WORKED OK (except BTCUSDTM....)
-
-    client_ft = Trade_Futures(key=API_Keys.KC_FUTURES['key'],
-                              secret=API_Keys.KC_FUTURES['secret'],
-                              passphrase=API_Keys.KC_FUTURES['passphrase'],
-                              is_sandbox=API_Keys.KC_FUTURES['is_sandbox'],
-                              url=API_Keys.KC_FUTURES['url'])
 
 ########################################################################
 
@@ -336,9 +297,9 @@ def market_order_hedge_add (sym, sym_f,
     try:
         # Buy Spot
         if ARBATM_param.order_type_s != "limit":
-            id_buy = buy_client.create_market_order(sym, 'buy', size=lotsize, clientOid=API_Keys.clientOid)['orderId'] # This Actually work
+            id_buy = buy_client.create_market_order(sym, 'buy', size=lotsize, clientOid=clientOid)['orderId'] # This Actually work
         else:
-            id_buy = buy_client.create_limit_order(symbol=sym, side='buy', price=tgt_buy_price, size=lotsize, clientOid=API_Keys.clientOid)['orderId']
+            id_buy = buy_client.create_limit_order(symbol=sym, side='buy', price=tgt_buy_price, size=lotsize, clientOid=clientOid)['orderId']
     except:
         print("ERROR (3A)!!! when <place_market_order:create_market_order(BUY-S)> ")
         pass
@@ -350,9 +311,9 @@ def market_order_hedge_add (sym, sym_f,
     if id_buy != '':
         try:
             if ARBATM_param.order_type_f != "limit":
-                id_sell = sell_client.create_market_order(symbol=sym_f, side='sell', lever=1, clientOid=API_Keys.clientOid, size=num_f_contract)['orderId'] # ACTUALLY WORK!!!!!
+                id_sell = sell_client.create_market_order(symbol=sym_f, side='sell', lever=1, clientOid=clientOid, size=num_f_contract)['orderId'] # ACTUALLY WORK!!!!!
             else:
-                id_sell = sell_client.create_limit_order (symbol=sym_f, side='sell', price=tgt_sell_price, lever=1, clientOid=API_Keys.clientOid, size=num_f_contract)['orderId']  # ACTUALLY WORK!!!!!
+                id_sell = sell_client.create_limit_order (symbol=sym_f, side='sell', price=tgt_sell_price, lever=1, clientOid=clientOid, size=num_f_contract)['orderId']  # ACTUALLY WORK!!!!!
         except:
             print("ERROR (3B)!!! when <place_market_order:create_market_order(SELL " + str(num_f_contract) + " F)> ")
             pass
@@ -368,7 +329,7 @@ def market_order_hedge_add (sym, sym_f,
         try:
             # Bought S Successful, Sell F Failed, Sell S (close IMMEDIATELY!!)
             #id_sell2 = buy_client.create_market_order(sym, 'sell', size=lotsize)
-            id_sell2 = buy_client.create_market_order(symbol=sym, side='sell', size=buy_client.get_order_details(orderId=id_buy)['size'], clientOid=API_Keys.clientOid)
+            id_sell2 = buy_client.create_market_order(symbol=sym, side='sell', size=buy_client.get_order_details(orderId=id_buy)['size'], clientOid=clientOid)
         except:
             print("ERROR (3C)!!! when <place_market_order:create_market_order(SELL " + str(lotsize) + " S: due to SELL-F Failed)> ")
             pass
@@ -424,11 +385,11 @@ def market_order_subtract (sym, sym_f,
         # Buy Futures
         #id_buy = buy_client.create_market_order (sym, 'buy', size=lotsize)['orderId'] # This Actually work
         if ARBATM_param.order_type_f != "limit":
-            id_buy = buy_client.create_market_order(symbol=sym_f, side='buy', lever=1, clientOid=API_Keys.clientOid,
+            id_buy = buy_client.create_market_order(symbol=sym_f, side='buy', lever=1, clientOid=clientOid,
                                                     size=num_f_contract)['orderId']  # ACTUALLY WORK!!!!!
         else:
             id_buy = buy_client.create_limit_order(symbol=sym_f, side='buy', price=tgt_buy_price, lever=1,
-                                                   clientOid=API_Keys.clientOid, size=num_f_contract)['orderId']  # ACTUALLY WORK!!!!!
+                                                   clientOid=clientOid, size=num_f_contract)['orderId']  # ACTUALLY WORK!!!!!
         #print ("Buy Simulatino")
         #break
     except:
@@ -445,11 +406,11 @@ def market_order_subtract (sym, sym_f,
     if id_buy != '':
         try:
             if ARBATM_param.order_type_s != "limit":
-                id_sell = sell_client.create_market_order (sym, 'sell', size=lotsize, clientOid=API_Keys.clientOid)['orderId'] # This Actually work
+                id_sell = sell_client.create_market_order (sym, 'sell', size=lotsize, clientOid=clientOid)['orderId'] # This Actually work
             else:
                 id_sell = sell_client.create_limit_order(symbol=sym, side='sell', price=tgt_sell_price, size=lotsize,
-                                                         clientOid=API_Keys.clientOid)['orderId']
-            #id_sell = sell_client.create_market_order(symbol=sym_f, side='sell', lever=1, clientOid=API_Keys.clientOid, size=num_f_contract)['orderId'] # ACTUALLY WORK!!!!!
+                                                         clientOid=clientOid)['orderId']
+            #id_sell = sell_client.create_market_order(symbol=sym_f, side='sell', lever=1, clientOid=clientOid, size=num_f_contract)['orderId'] # ACTUALLY WORK!!!!!
             # {'orderId': '61e82f61ac21e400010905d3'}
             #break
         except:
@@ -466,10 +427,10 @@ def market_order_subtract (sym, sym_f,
         try:
             # Bought S Successful, Sell F Failed, Sell S (close IMMEDIATELY!!)
             # id_sell2 = buy_client.create_market_order(sym, 'sell', size=lotsize)
-            #id_sell2 = buy_client.create_market_order(sym, 'sell', size=buy_client.get_order_details(orderId=id_buy)['size'], clientOid=API_Keys.clientOid)
-            #id_sell2 = buy_client.create_market_order(symbol=sym_f, side='sell', lever=1, clientOid=API_Keys.clientOid,
+            #id_sell2 = buy_client.create_market_order(sym, 'sell', size=buy_client.get_order_details(orderId=id_buy)['size'], clientOid=clientOid)
+            #id_sell2 = buy_client.create_market_order(symbol=sym_f, side='sell', lever=1, clientOid=clientOid,
             #                                          size=num_f_contract)['orderId']
-            id_sell2 = buy_client.create_market_order(symbol=sym_f, side='sell', lever=1, clientOid=API_Keys.clientOid,
+            id_sell2 = buy_client.create_market_order(symbol=sym_f, side='sell', lever=1, clientOid=clientOid,
                                                       size=buy_client.get_order_details(orderId=id_buy)['size'])['orderId']
         except:
             print("ERROR (4C)!!! when <market_order_subtract(-1):create_market_order(SELL " + str(num_f_contract) + " F: due to SELL-S Failed))> ")
@@ -533,7 +494,7 @@ def market_order_closeAll (sym, sym_f,
         if ARBATM_param.order_type_s != "limit":
             id_sell = sell_client.create_market_order(sym, 'sell', size=lotsize)['orderId']
         else:
-            id_sell = sell_client.create_limit_order(symbol=sym, side='sell', price=tgt_sell_price, size=lotsize, clientOid=API_Keys.clientOid)['orderId']
+            id_sell = sell_client.create_limit_order(symbol=sym, side='sell', price=tgt_sell_price, size=lotsize, clientOid=clientOid)['orderId']
     except:
         print("ERROR (5A)!!! when <market_order_closeAll:create_market_order(SELL-S)> ")
         #sys.exit()
@@ -547,10 +508,10 @@ def market_order_closeAll (sym, sym_f,
         try:
             print(',market_order_closeAll.: Try to buy back ' + str(num_f_contract) + ' ' + sym_f)
             if ARBATM_param.order_type_f != "limit":
-                id_buy = buy_client.create_market_order(symbol=sym_f, side='buy', lever=1, clientOid=API_Keys.clientOid, size=num_f_contract)['orderId']
+                id_buy = buy_client.create_market_order(symbol=sym_f, side='buy', lever=1, clientOid=clientOid, size=num_f_contract)['orderId']
             else:
                 id_buy = buy_client.create_limit_order(symbol=sym_f, side='buy', price=tgt_buy_price, lever=1,
-                                                       clientOid=API_Keys.clientOid, size=num_f_contract)['orderId']  # ACTUALLY WORK!!!!!
+                                                       clientOid=clientOid, size=num_f_contract)['orderId']  # ACTUALLY WORK!!!!!
         except:
             print("ERROR (5B)!!! when <place_market_order:create_market_order(SELL-F)> ")
             pass
@@ -742,8 +703,8 @@ print (f_lot_size_txt)
 #print("Num Contract: " + str(equiv_num_fcont))
 #sys.exit()
 
-#id_buy = buy_client.create_limit_order(symbol=sym, price=tgt_buy_price, size=lotsize, clientOid=API_Keys.clientOid)['orderId']
-#id_buy = client_st.create_limit_order(symbol=sym, side='buy', price=0.12, size=equiv_num_fcont, clientOid=API_Keys.clientOid)['orderId']
+#id_buy = buy_client.create_limit_order(symbol=sym, price=tgt_buy_price, size=lotsize, clientOid=clientOid)['orderId']
+#id_buy = client_st.create_limit_order(symbol=sym, side='buy', price=0.12, size=equiv_num_fcont, clientOid=clientOid)['orderId']
 #print (id_buy)
 #sys.exit()
 
