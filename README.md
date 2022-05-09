@@ -10,6 +10,18 @@ https://www.pypy.org/download.html
 pypy3 -m venv env
 ```
 
+## active the virtual enviroment
+Mac/Linux
+```
+source ./env/bin/activate
+```
+
+window
+```
+env\Script\activate
+```
+
+
 ## install packages
 ```
 pip install -r requirements.txt
